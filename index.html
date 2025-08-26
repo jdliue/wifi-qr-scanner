@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- PWA 基本設定 -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="WiFi掃描器">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#2563eb">
+    <meta name="msapplication-navbutton-color" content="#2563eb">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <title>WiFi QR Code 掃描器</title>
+    <meta name="description" content="專門解析 Android WiFi QR code 的離線掃描器，支援完全離線使用">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" id="manifest-placeholder">
+    
+    <!-- 圖示 -->
+    <link rel="apple-touch-icon" sizes="180x180" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgwIiBoZWlnaHQ9IjE4MCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cmVjdCB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHJ4PSI0IiBmaWxsPSIjMjU2M2ViIi8+CjxwYXRoIGQ9Im0xIDlsNi0zIDYgMyIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPHA+th IGQ9Im0xIDE1bDYtMyA2IDMiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+CjxwYXRoIGQ9Ik05IDF2MjAiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+Cjwvc3ZnPgo=">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiByeD0iNCIgZmlsbD0iIzI1NjNlYiIvPgo8cGF0aCBkPSJtMSA5bDYtMyA2IDMiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+CjxwYXRoIGQ9Im0xIDE1bDYtMyA2IDMiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+CjxwYXRoIGQ9Ik05IDF2MjAiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+Cjwvc3ZnPgo=">
+    
+    <!-- QR Scanner Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qr-scanner/1.4.2/qr-scanner.umd.min.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #eff6ff 0%, #e0e7ff 100%);
+            min-height: 100vh;
+            padding: 1rem;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+        }
+
+        .container {
+            max-width: 28rem;
+            margin: 0 auto;
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
+            padding: 1.5rem;
+            color: white;
+            position: relative;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .wifi-icon {
+            width: 2rem;
+            height: 2rem;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .header p {
+            color: #bfdbfe;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+
+        .pwa-badge {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.5rem;
+            font-size: 0.75rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .content {
+            padding: 1.5rem;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem;
+            margin-bottom: 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .status-online {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-offline {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-icon {
+            width: 1rem;
+            height: 1rem;
+        }
+
+        .camera-placeholder {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .camera-icon {
+            width: 8rem;
+            height: 8rem;
+            margin: 0 auto 1.5rem;
+            background: #f3f4f6;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .camera-icon svg {
+            width: 4rem;
+            height: 4rem;
+            color: #9ca3af;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 1rem;
+            border: none;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            font-size: 1.125rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+            display: inline-block;
+            text-decoration: none;
+            touch-action: manipulation;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-primary {
+            background: #2563eb;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1d4ed8;
+        }
+
+        .btn-success {
+            background: #059669;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #047857;
+        }
+
+        .btn-secondary {
+            background: #4b5563;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #374151;
+        }
+
+        .btn-test {
+            background: #f3f4f6;
+            color: #374151;
+            padding: 0.5rem;
+            font-size: 0.875rem;
+            margin-top: 1rem;
+        }
+
+        .btn-test:hover {
+            background: #e5e7eb;
+        }
+
+        .video-container {
+            position: relative;
+            background: black;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+
+        #video {
+            width: 100%;
+            height: 16rem;
+            object-fit: cover;
+        }
+
+        .video-overlay {
+            position: absolute;
+            inset: 1rem;
+            border: 2px dashed white;
+            border-radius: 0.75rem;
+            pointer-events: none;
+        }
+
+        .scan-line {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            right: 1rem;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #10b981, transparent);
+            animation: scan 2s linear infinite;
+        }
+
+        @keyframes scan {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(14rem); }
+        }
+
+        .button-group {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .button-group .btn {
+            flex: 1;
+            padding: 0.75rem;
+        }
+
+        .wifi-info {
+            margin-bottom: 1.5rem;
+        }
+
+        .success-icon {
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .success-icon svg {
+            width: 4rem;
+            height: 4rem;
+            color: #059669;
+            animation: success-bounce 0.6s ease-out;
+        }
+
+        @keyframes success-bounce {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .info-card {
+            background: #f9fafb;
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .info-field {
+            margin-bottom: 1rem;
+        }
+
+        .info-field:last-child {
+            margin-bottom: 0;
+        }
+
+        .info-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #4b5563;
+            margin-bottom: 0.25rem;
+        }
+
+        .info-value {
+            background: white;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            border: 1px solid #d1d5db;
+            font-size: 1.125rem;
+            font-family: monospace;
+            word-break: break-all;
+        }
+
+        .password-field {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .password-field .info-value {
+            flex: 1;
+        }
+
+        .copy-btn {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .copy-btn:hover {
+            background: #1d4ed8;
+        }
+
+        .copy-btn:active {
+            transform: scale(0.95);
+        }
+
+        .copy-btn svg {
+            width: 1.25rem;
+            height: 1.25rem;
+        }
+
+        .instructions {
+            background: #eff6ff;
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .instructions h3 {
+            color: #1e40af;
+            font-weight: bold;
+            margin-bottom: 0.75rem;
+        }
+
+        .instructions ol {
+            color: #1e40af;
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+
+        .instructions li {
+            display: flex;
+            margin-bottom: 0.5rem;
+        }
+
+        .instructions li span:first-child {
+            font-weight: bold;
+            margin-right: 0.5rem;
+        }
+
+        .error {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .error svg {
+            width: 1.25rem;
+            height: 1.25rem;
+            color: #ef4444;
+            flex-shrink: 0;
+            margin-top: 0.125rem;
+        }
+
+        .error-text {
+            color: #b91c1c;
+            font-size: 0.875rem;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 1.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #059669;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 9999px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.25);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            z-index: 1000;
+            animation: toast-slide-up 0.3s ease-out;
+        }
+
+        @keyframes toast-slide-up {
+            from { transform: translate(-50%, 100%); opacity: 0; }
+            to { transform: translate(-50%, 0); opacity: 1; }
+        }
+
+        .toast svg {
+            width: 1.25rem;
+            height: 1.25rem;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .usage-guide {
+            max-width: 28rem;
+            margin: 1.5rem auto 0;
+            background: white;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .usage-guide h3 {
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 0.75rem;
+        }
+
+        .usage-guide ul {
+            color: #4b5563;
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+
+        .usage-guide li {
+            margin-bottom: 0.5rem;
+        }
+
+        .pwa-install-prompt {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        .pwa-install-prompt.show {
+            display: block;
+        }
+
+        .pwa-install-content {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .pwa-install-content svg {
+            width: 1.5rem;
+            height: 1.5rem;
+            color: #2563eb;
+            flex-shrink: 0;
+        }
+
+        .pwa-install-text {
+            flex: 1;
+            font-size: 0.875rem;
+            color: #1e40af;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid #f3f4f6;
+            border-radius: 50%;
+            border-top-color: #3b82f6;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* PWA 全螢幕樣式 */
+        @media (display-mode: standalone) {
+            body {
+                padding-top: env(safe-area-inset-top);
+                padding-bottom: env(safe-area-inset-bottom);
+            }
+            
+            .pwa-badge {
+                background: rgba(255, 255, 255, 0.3);
+            }
+        }
+
+        /* iOS Safari 樣式調整 */
+        @supports (-webkit-touch-callout: none) {
+            body {
+                -webkit-overflow-scrolling: touch;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 標題 -->
+        <div class="header">
+            <div class="pwa-badge">
+                <span id="pwa-status">PWA</span>
+            </div>
+            <div class="header-content">
+                <svg class="wifi-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0"/>
+                </svg>
+                <div>
+                    <h1>WiFi QR 掃描器</h1>
+                    <p>離線 PWA 版本 - 掃描 Android WiFi QR code</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 主要內容區域 -->
+        <div class="content">
+            <!-- 狀態指示器 -->
+            <div id="status-indicator" class="status-indicator status-online">
+                <svg class="status-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.636 18.364a9 9 0 010-12.728m12.728 0a9 9 0 010 12.728m-9.9-2.829a5 5 0 010-7.07m7.072 0a5 5 0 010 7.07M13 12a1 1 0 11-2 0 1 1 0 012 0z"/>
+                </svg>
+                <span id="status-text">應用程式已就緒 - 支援完全離線使用</span>
+            </div>
+
+            <!-- PWA 安裝提示 -->
+            <div id="pwa-install-prompt" class="pwa-install-prompt">
+                <div class="pwa-install-content">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                    </svg>
+                    <div class="pwa-install-text">
+                        <strong>加入主畫面以獲得最佳體驗</strong><br>
+                        點擊分享按鈕 → "加入主畫面"
+                    </div>
+                </div>
+            </div>
+
+            <!-- 初始畫面 -->
+            <div id="initial-screen">
+                <div class="camera-placeholder">
+                    <div class="camera-icon">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                    </div>
+                    
+                    <button id="start-scan" class="btn btn-primary">
+                        <span id="start-scan-text">開始掃描 QR Code</span>
+                        <div id="start-scan-loading" class="loading-spinner hidden" style="margin-left: 0.5rem;"></div>
+                    </button>
+                    
+                    <!-- 測試按鈕 -->
+                    <div style="border-top: 1px solid #e5e7eb; padding-top: 1rem; margin-top: 1rem;">
+                        <p style="font-size: 0.875rem; color: #4b5563; margin-bottom: 0.75rem;">測試用 - 手動輸入:</p>
+                        <button id="test-wifi" class="btn btn-test">
+                            測試範例 WiFi
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 相機掃描介面 -->
+            <div id="scanning-screen" class="hidden">
+                <div class="video-container">
+                    <video id="video" autoplay playsinline muted></video>
+                    <div class="video-overlay"></div>
+                    <div class="scan-line"></div>
+                </div>
+                
+                <div style="text-align: center; margin-bottom: 1rem;">
+                    <p style="color: #4b5563; margin-bottom: 0.75rem;">
+                        <span class="loading-spinner" style="margin-right: 0.5rem;"></span>
+                        自動掃描中...將 QR code 對準框內
+                    </p>
+                    <div class="button-group">
+                        <button id="manual-scan" class="btn btn-success">手動掃描</button>
+                        <button id="stop-scan" class="btn btn-secondary">停止</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- WiFi 資訊顯示 -->
+            <div id="result-screen" class="hidden">
+                <div class="wifi-info">
+                    <div class="success-icon">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <h2 style="font-size: 1.25rem; font-weight: bold; color: #1f2937; margin-top: 1rem;">掃描成功！</h2>
+                    </div>
+
+                    <div class="info-card">
+                        <div class="info-field">
+                            <label class="info-label">網路名稱 (SSID)</label>
+                            <div id="ssid-value" class="info-value"></div>
+                        </div>
+
+                        <div class="info-field">
+                            <label class="info-label">密碼</label>
+                            <div class="password-field">
+                                <div id="password-value" class="info-value"></div>
+                                <button id="copy-password" class="copy-btn">
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="info-field">
+                            <label class="info-label">加密方式</label>
+                            <div id="security-value" class="info-value"></div>
+                        </div>
+                    </div>
+
+                    <!-- iOS 連線指導 -->
+                    <div class="instructions">
+                        <h3>iOS 連線步驟：</h3>
+                        <ol>
+                            <li>
+                                <span>1.</span>
+                                <span>開啟「設定」→「Wi-Fi」</span>
+                            </li>
+                            <li>
+                                <span>2.</span>
+                                <span>找到網路「<span id="ssid-instruction"></span>」並點選</span>
+                            </li>
+                            <li>
+                                <span>3.</span>
+                                <span>輸入上方顯示的密碼</span>
+                            </li>
+                            <li>
+                                <span>4.</span>
+                                <span>點選「加入」完成連線</span>
+                            </li>
+                        </ol>
+                    </div>
+
+                    <button id="reset-app" class="btn btn-secondary" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                        <svg style="width: 1.25rem; height: 1.25rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                        </svg>
+                        掃描其他 QR Code
+                    </button>
+                </div>
+            </div>
+
+            <!-- 錯誤訊息 -->
+            <div id="error-message" class="error hidden">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.464 0L4.732 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                </svg>
+                <div id="error-text" class="error-text"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 複製成功提示 -->
+    <div id="copy-toast" class="toast hidden">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <span>密碼已複製到剪貼板</span>
+    </div>
+
+    <!-- 使用說明 -->
+    <div class="usage-guide">
+        <h3>PWA 離線版本特色：</h3>
+        <ul>
+            <li>• <strong>完全離線使用</strong> - 第一次載入後無需網路連線</li>
+            <li>• <strong>自動快取</strong> - Service Worker 背景更新</li>
+            <li>• <strong>原生體驗</strong> - 加入主畫面像真正的 App</li>
+            <li>• <strong>智能掃描</strong> - 自動識別 Android WiFi QR code</li>
+            <li>• <strong>隱私保護</strong> - 所有處理都在本地進行</li>
+        </ul>
+    </div>
+
+    <script>
+        // PWA Service Worker 註冊
+        const SW_VERSION = '1.0.0';
+        const CACHE_NAME = 'wifi-qr-scanner-v1';
+        
+        // Service Worker 內聯代碼
+        const swCode = `
+            const CACHE_NAME = '${CACHE_NAME}';
+            const urlsToCache = [
+                '/',
+                '/index.html',
+                'https://cdnjs.cloudflare.com/ajax/libs/qr-scanner/1.4.2/qr-scanner.umd.min.js'
+            ];
+
+            self.addEventListener('install', event => {
+                event.waitUntil(
+                    caches.open(CACHE_NAME)
+                        .then(cache => {
+                            console.log('快取已開啟');
+                            return cache.addAll(urlsToCache.map(url => 
+                                url.startsWith('/') ? self.location.origin + url : url
+                            ));
+                        })
+                        .catch(err => console.log('快取失敗:', err))
+                );
+                self.skipWaiting();
+            });
+
+            self.addEventListener('activate', event => {
+                event.waitUntil(
+                    caches.keys().then(cacheNames => {
+                        return Promise.all(
+                            cacheNames.map(cacheName => {
+                                if (cacheName !== CACHE_NAME) {
+                                    console.log('刪除舊快取:', cacheName);
+                                    return caches.delete(cacheName);
+                                }
+                            })
+                        );
+                    })
+                );
+                self.clients.claim();
+            });
+
+            self.addEventListener('fetch', event => {
+                event.respondWith(
+                    caches.match(event.request)
+                        .then(response => {
+                            if (response) {
+                                return response;
+                            }
+                            return fetch(event.request).catch(() => {
+                                if (event.request.destination === 'document') {
+                                    return caches.match('/');
+                                }
+                            });
+                        })
+                );
+            });
+        `;
+
+        // 動態創建 Service Worker
+        function registerServiceWorker() {
+            if ('serviceWorker' in navigator) {
+                const blob = new Blob([swCode], { type: 'application/javascript' });
+                const swUrl = URL.createObjectURL(blob);
+                
+                navigator.serviceWorker.register(swUrl)
+                    .then(registration => {
+                        console.log('Service Worker 註冊成功:', registration);
+                        updatePWAStatus('已快取 - 支援離線使用');
+                        
+                        registration.addEventListener('updatefound', () => {
+                            const newWorker = registration.installing;
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'activated') {
+                                    updatePWAStatus('已更新 - 重新載入頁面獲得最新版本');
+                                }
+                            });
+                        });
+                    })
+                    .catch(err => {
+                        console.log('Service Worker 註冊失敗:', err);
+                        updatePWAStatus('離線功能不可用');
+                    });
+            }
+        }
+
+        // 動態生成 PWA Manifest
+        function createManifest() {
+            const manifest = {
+                name: "WiFi QR Code 掃描器",
+                short_name: "WiFi掃描器",
+                description: "專門解析 Android WiFi QR code 的離線掃描器",
+                start_url: "./",
+                display: "standalone",
+                background_color: "#ffffff",
+                theme_color: "#2563eb",
+                orientation: "portrait",
+                icons: [
+                    {
+                        src: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cmVjdCB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHJ4PSI0IiBmaWxsPSIjMjU2M2ViIi8+CjxwYXRoIGQ9Ik04LjExMSAxNi40MDRhNS41IDUuNSAwIDAxNy43NzggME0xMiAyMGguMDFtLTcuMDgtNy4wNzFjMy45MDQtMy45MDUgMTAuMjM2LTMuOTA1IDE0LjE0MSAwTTEuMzk0IDkuMzkzYzUuODU3LTUuODU3IDE1LjM1NS01Ljg1NyAyMS4yMTMgMCIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPC9zdmc+",
+                        sizes: "192x192",
+                        type: "image/svg+xml"
+                    },
+                    {
+                        src: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cmVjdCB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHJ4PSI0IiBmaWxsPSIjMjU2M2ViIi8+CjxwYXRoIGQ9Ik04LjExMSAxNi40MDRhNS41IDUuNSAwIDAxNy43NzggME0xMiAyMGguMDFtLTcuMDgtNy4wNzFjMy45MDQtMy45MDUgMTAuMjM2LTMuOTA1IDE0LjE0MSAwTTEuMzk0IDkuMzkzYzUuODU3LTUuODU3IDE1LjM1NS01Ljg1NyAyMS4yMTMgMCIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPC9zdmc+",
+                        sizes: "512x512",
+                        type: "image/svg+xml"
+                    }
+                ],
+                categories: ["utilities", "productivity"],
+                lang: "zh-TW"
+            };
+
+            const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+            const manifestURL = URL.createObjectURL(manifestBlob);
+            document.getElementById('manifest-placeholder').href = manifestURL;
+        }
+
+        // 應用程式狀態管理
+        let stream = null;
+        let qrScanner = null;
+        let isScanning = false;
+
+        // DOM 元素
+        const initialScreen = document.getElementById('initial-screen');
+        const scanningScreen = document.getElementById('scanning-screen');
+        const resultScreen = document.getElementById('result-screen');
+        const errorMessage = document.getElementById('error-message');
+        const errorText = document.getElementById('error-text');
+        const copyToast = document.getElementById('copy-toast');
+        const statusIndicator = document.getElementById('status-indicator');
+        const statusText = document.getElementById('status-text');
+        const pwaInstallPrompt = document.getElementById('pwa-install-prompt');
+
+        const startScanBtn = document.getElementById('start-scan');
+        const startScanText = document.getElementById('start-scan-text');
+        const startScanLoading = document.getElementById('start-scan-loading');
+        const testWifiBtn = document.getElementById('test-wifi');
+        const manualScanBtn = document.getElementById('manual-scan');
+        const stopScanBtn = document.getElementById('stop-scan');
+        const copyPasswordBtn = document.getElementById('copy-password');
+        const resetAppBtn = document.getElementById('reset-app');
+
+        const video = document.getElementById('video');
+        const ssidValue = document.getElementById('ssid-value');
+        const passwordValue = document.getElementById('password-value');
+        const securityValue = document.getElementById('security-value');
+        const ssidInstruction = document.getElementById('ssid-instruction');
+
+        // 更新 PWA 狀態
+        function updatePWAStatus(message) {
+            statusText.textContent = message;
+            if (message.includes('離線') || message.includes('已快取')) {
+                statusIndicator.className = 'status-indicator status-online';
+            } else {
+                statusIndicator.className = 'status-indicator status-offline';
+            }
+        }
+
+        // 檢測網路狀態
+        function updateNetworkStatus() {
+            if (navigator.onLine) {
+                updatePWAStatus('線上模式 - 功能完全可用');
+            } else {
+                updatePWAStatus('離線模式 - 使用快取版本');
+            }
+        }
+
+        // 解析 WiFi QR code 內容
+        function parseWiFiQR(qrText) {
+            const wifiRegex = /WIFI:T:([^;]*);S:([^;]*);P:([^;]*);(?:H:([^;]*);)?;/i;
+            const match = qrText.match(wifiRegex);
+            
+            if (match) {
+                return {
+                    security: match[1] || 'NONE',
+                    ssid: match[2] || '',
+                    password: match[3] || '',
+                    hidden: match[4] === 'true'
+                };
+            }
+            return null;
+        }
+
+        // 顯示錯誤訊息
+        function showError(message) {
+            errorText.textContent = message;
+            errorMessage.classList.remove('hidden');
+            setTimeout(() => {
+                errorMessage.classList.add('hidden');
+            }, 5000);
+        }
+
+        // 顯示複製成功提示
+        function showCopyToast() {
+            copyToast.classList.remove('hidden');
+            setTimeout(() => {
+                copyToast.classList.add('hidden');
+            }, 2000);
+        }
+
+        // 啟動相機
+        async function startCamera() {
+            try {
+                if (isScanning) return;
+                
+                errorMessage.classList.add('hidden');
+                startScanText.classList.add('hidden');
+                startScanLoading.classList.remove('hidden');
+                startScanBtn.disabled = true;
+                
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        facingMode: 'environment',
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    }
+                });
+                
+                video.srcObject = stream;
+                isScanning = true;
+                
+                initialScreen.classList.add('hidden');
+                scanningScreen.classList.remove('hidden');
+                
+                // 等待視頻載入
+                video.onloadedmetadata = () => {
+                    // 初始化 QR 掃描器
+                    if (window.QrScanner) {
+                        qrScanner = new QrScanner(video, result => {
+                            handleQRResult(result);
+                        }, {
+                            returnDetailedScanResult: true,
+                            highlightScanRegion: true,
+                            highlightCodeOutline: true
+                        });
+                        qrScanner.start().then(() => {
+                            console.log('QR Scanner 啟動成功');
+                        }).catch(err => {
+                            console.error('QR Scanner 啟動失敗:', err);
+                            showError('QR 掃描器啟動失敗，請使用手動掃描');
+                        });
+                    } else {
+                        showError('QR 掃描庫未載入，請使用手動掃描或重新整理頁面');
+                    }
+                };
+                
+            } catch (err) {
+                showError('無法啟動相機，請檢查權限設定');
+                console.error('相機啟動失敗:', err);
+                resetScanButton();
+            }
+        }
+
+        // 重置掃描按鈕
+        function resetScanButton() {
+            startScanText.classList.remove('hidden');
+            startScanLoading.classList.add('hidden');
+            startScanBtn.disabled = false;
+        }
+
+        // 停止相機
+        function stopCamera() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+            
+            if (qrScanner) {
+                qrScanner.stop();
+                qrScanner.destroy();
+                qrScanner = null;
+            }
+            
+            isScanning = false;
+            scanningScreen.classList.add('hidden');
+            initialScreen.classList.remove('hidden');
+            resetScanButton();
+        }
+
+        // 處理 QR 掃描結果
+        function handleQRResult(result) {
+            const qrText = typeof result === 'string' ? result : result.data;
+            console.log('掃描到 QR Code:', qrText);
+            
+            const wifiData = parseWiFiQR(qrText);
+            
+            if (wifiData) {
+                displayWiFiInfo(wifiData);
+                stopCamera();
+            } else {
+                showError('無法解析 WiFi QR code，請確認格式正確。期望格式：WIFI:T:WPA;S:網路名稱;P:密碼;;');
+            }
+        }
+
+        // 顯示 WiFi 資訊
+        function displayWiFiInfo(wifiData) {
+            ssidValue.textContent = wifiData.ssid;
+            passwordValue.textContent = wifiData.password || '無密碼';
+            securityValue.textContent = wifiData.security === 'nopass' ? '開放網路' : wifiData.security;
+            ssidInstruction.textContent = wifiData.ssid;
+            
+            // 如果沒有密碼，隱藏複製按鈕
+            if (!wifiData.password) {
+                copyPasswordBtn.style.display = 'none';
+            } else {
+                copyPasswordBtn.style.display = 'flex';
+            }
+            
+            scanningScreen.classList.add('hidden');
+            resultScreen.classList.remove('hidden');
+        }
+
+        // 複製到剪貼板
+        async function copyToClipboard(text) {
+            try {
+                await navigator.clipboard.writeText(text);
+                showCopyToast();
+            } catch (err) {
+                console.error('複製失敗:', err);
+                // 降級方案
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                textArea.style.position = 'fixed';
+                textArea.style.left = '-999999px';
+                textArea.style.top = '-999999px';
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    showCopyToast();
+                } catch (e) {
+                    showError('複製功能不支援，請手動選取密碼');
+                }
+                document.body.removeChild(textArea);
+            }
+        }
+
+        // 重置應用程式
+        function resetApp() {
+            stopCamera();
+            resultScreen.classList.add('hidden');
+            initialScreen.classList.remove('hidden');
+            errorMessage.classList.add('hidden');
+        }
+
+        // 手動掃描
+        function manualScan() {
+            if (qrScanner) {
+                showError('自動掃描進行中，請將 QR code 對準相機');
+            } else {
+                showError('QR 掃描功能不可用，請重新啟動掃描或使用測試功能');
+            }
+        }
+
+        // 檢查 PWA 安裝狀態
+        function checkPWAInstallation() {
+            // 檢查是否在獨立模式運行
+            if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
+                pwaInstallPrompt.classList.remove('show');
+                updatePWAStatus('PWA 模式 - 完全離線可用');
+            } else {
+                // 顯示安裝提示
+                setTimeout(() => {
+                    pwaInstallPrompt.classList.add('show');
+                }, 3000);
+            }
+        }
+
+        // 事件監聽器
+        startScanBtn.addEventListener('click', startCamera);
+        stopScanBtn.addEventListener('click', stopCamera);
+        manualScanBtn.addEventListener('click', manualScan);
+        resetAppBtn.addEventListener('click', resetApp);
+
+        testWifiBtn.addEventListener('click', () => {
+            handleQRResult('WIFI:T:WPA;S:MyWiFi測試網路;P:password123;H:false;;');
+        });
+
+        copyPasswordBtn.addEventListener('click', () => {
+            const password = passwordValue.textContent;
+            if (password && password !== '無密碼') {
+                copyToClipboard(password);
+            }
+        });
+
+        // 網路狀態監聽
+        window.addEventListener('online', updateNetworkStatus);
+        window.addEventListener('offline', updateNetworkStatus);
+
+        // 防止頁面縮放
+        document.addEventListener('gesturestart', function(e) {
+            e.preventDefault();
+        });
+
+        document.addEventListener('gesturechange', function(e) {
+            e.preventDefault();
+        });
+
+        document.addEventListener('gestureend', function(e) {
+            e.preventDefault();
+        });
+
+        // 清理資源
+        window.addEventListener('beforeunload', () => {
+            stopCamera();
+        });
+
+        // 頁面可見性變化處理
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden && isScanning) {
+                // 頁面隱藏時暫停掃描
+                if (qrScanner) {
+                    qrScanner.stop();
+                }
+            } else if (!document.hidden && isScanning) {
+                // 頁面顯示時恢復掃描
+                if (qrScanner) {
+                    qrScanner.start();
+                }
+            }
+        });
+
+        // 應用程式初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            // 創建 PWA Manifest
+            createManifest();
+            
+            // 註冊 Service Worker
+            registerServiceWorker();
+            
+            // 檢查網路狀態
+            updateNetworkStatus();
+            
+            // 檢查 PWA 安裝狀態
+            checkPWAInstallation();
+            
+            // 檢查 QR Scanner 是否載入
+            if (!window.QrScanner) {
+                console.warn('QR Scanner 未載入，某些功能可能不可用');
+                showError('QR 掃描庫載入中，請稍後再試或使用測試功能');
+            }
+        });
+
+        console.log('WiFi QR Scanner PWA v' + SW_VERSION + ' 已載入');
+    </script>
+</body>
+</html>
